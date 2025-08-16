@@ -200,9 +200,6 @@ Use the app:
 
 If 'popcorn' is not found, ensure ~/.local/bin is in your PATH or open a new terminal.
 
-One-liner for README:
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/refs/heads/master/installer.sh)"
-
 Uninstall:
   rm -rf "${HOME}/.local/share/popcorn_cli" "${HOME}/.local/bin/popcorn"
 
