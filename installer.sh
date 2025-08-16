@@ -63,8 +63,35 @@ install_pkgs() {
   esac
 }
 
-info "Installing required system packages (git, curl, python, mpv, nodejs/npm)"
-install_pkgs
+# Decide whether we need to install system packages (avoid sudo if already present)
+SKIP_SYSTEM="${SKIP_SYSTEM:-0}"
+if [ "$SKIP_SYSTEM" = "1" ]; then
+  info "Skipping system package installation (SKIP_SYSTEM=1)."
+else
+  need_install=0
+  # Basic tools
+  for t in git curl bash mpv node npm; do
+    if ! have "$t"; then need_install=1; break; fi
+  done
+  # Python + venv + pip
+  PY_BIN=python3
+  if ! have "$PY_BIN"; then
+    if have python; then PY_BIN=python; else need_install=1; fi
+  fi
+  if ! "$PY_BIN" -c "import venv" >/dev/null 2>&1; then
+    need_install=1
+  fi
+  if ! "$PY_BIN" -m pip --version >/dev/null 2>&1; then
+    need_install=1
+  fi
+
+  if [ "$need_install" -eq 1 ]; then
+    info "Installing required system packages (git, curl, python, mpv, nodejs/npm)"
+    install_pkgs
+  else
+    info "System requirements already satisfied; skipping package installation."
+  fi
+fi
 
 # Ensure npm installs to user prefix to avoid sudo
 export NPM_CONFIG_PREFIX="${HOME}/.local"
@@ -109,9 +136,32 @@ else
   git clone https://github.com/J0bot/popcorn_cli.git "$DEST_DIR"
 fi
 
-# Setup python venv and deps
+# Setup python venv and deps (unified)
+# Detect a usable python binary
+PY_BIN=python3
+if ! have "$PY_BIN"; then
+  if have python; then PY_BIN=python; else die "Python interpreter not found (need python3 or python)."; fi
+fi
+
+VENV_DIR="$DEST_DIR/.venv"
 info "Setting up Python virtual environment"
-( cd "$DEST_DIR" && bash ./install.sh )
+if [ ! -d "$VENV_DIR" ]; then
+  info "Creating virtual environment at $VENV_DIR"
+  "$PY_BIN" -m venv "$VENV_DIR" || die "Failed to create virtual environment"
+else
+  info "Virtual environment already exists at $VENV_DIR"
+fi
+
+PY="$VENV_DIR/bin/python"
+info "Upgrading pip, setuptools, wheel"
+"$PY" -m pip install --upgrade pip setuptools wheel
+
+if [ -f "$DEST_DIR/requirements.txt" ]; then
+  info "Installing Python dependencies from $DEST_DIR/requirements.txt"
+  "$PY" -m pip install -r "$DEST_DIR/requirements.txt"
+else
+  warn "No requirements.txt found — skipping Python dependency install"
+fi
 
 # Create launcher in ~/.local/bin
 BIN_DIR="${HOME}/.local/bin"
@@ -123,8 +173,8 @@ set -eu
 APP_DIR="$DEST_DIR"
 PY="\$APP_DIR/.venv/bin/python"
 if [ ! -x "\$PY" ]; then
-  echo "Python environment not found at \$PY. Re-running setup..." >&2
-  bash "\$APP_DIR/install.sh"
+  echo "Python environment not found at \$PY. Re-run: sh \"\$APP_DIR/installer.sh\"" >&2
+  exit 1
 fi
 exec "\$PY" "\$APP_DIR/popcorn_cli.py" "\$@"
 EOF
@@ -143,15 +193,15 @@ fi
 
 info "Installation complete."
 
-cat <<MSG
+cat <<'MSG'
 
 Use the app:
   popcorn
 
 If 'popcorn' is not found, ensure ~/.local/bin is in your PATH or open a new terminal.
 
-One-liner for README (after you push installer.sh to main):
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/main/installer.sh)"
+One-liner for README:
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/refs/heads/master/installer.sh)"
 
 Uninstall:
   rm -rf "${HOME}/.local/share/popcorn_cli" "${HOME}/.local/bin/popcorn"
