@@ -7,11 +7,9 @@ Version anime : ([ani-cli](https://github.com/pystardust/ani-cli))
 Cette daube infinie m'a pris beaucoup trop de temps à faire.
 ça fonctionne super bien mais franchement c'est pas fou pour ce que c'est.
 
-
 ---
 
 ## Install (Linux)
-
 
 ```sh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/refs/heads/master/installer.sh)"
