@@ -110,7 +110,7 @@ def send_mpv_command(command):
     except Exception as e:
         cprint(f"Failed to send command to MPV: {e}", "red")
 
-def command_interface(mpv_process):
+def command_interface():
     """Command interface to control movie playback."""
     cprint("\nControl the playback with the following commands:", "cyan")
     cprint("pause - Pause the movie", "yellow")
@@ -140,7 +140,7 @@ def command_interface(mpv_process):
             cprint("Unknown command. Try again.", "red")
     
     cprint("Exiting movie...", "red")
-    mpv_process.terminate()
+    # MPV will be closed via the quit command above; no process handling here.
 
 def display_movie_info(movie, torrent):
     cprint("\n=======================================", "blue")
@@ -178,10 +178,10 @@ def main():
         cprint(f"You have watched {movie['title']} before. Last stopped at: {history['time']}", "yellow")
     
     # Watch the movie
-    mpv_process = watch_movie(torrent, movie['title'])
+    watch_movie(torrent, movie['title'])
 
     # Command interface for user control
-    command_interface(mpv_process)
+    command_interface()
 
     # Update history (for simplicity, we're not tracking time here)
     history = load_history()
