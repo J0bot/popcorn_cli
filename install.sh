@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple installer for popcorn_cli
-# - Creates a virtual environment in .venv
-# - Installs Python dependencies from requirements.txt
-# - Checks for external tools: mpv and peerflix, and prints how to install them
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${VENV_DIR:-"$PROJECT_DIR/.venv"}"

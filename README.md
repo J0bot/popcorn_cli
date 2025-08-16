@@ -12,7 +12,7 @@ Cette daube infinie m'a pris beaucoup trop de temps à faire.
 
 
 ```sh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/main/installer.sh)"
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/J0bot/popcorn_cli/refs/heads/master/installer.sh)"
 ```
 
 Ce qu'il fait :
